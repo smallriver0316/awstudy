@@ -1,3 +1,3 @@
 # AWStudy
 
-Collection of implementation for AWS services
+This is sandox of AWS infrastructure designs.
