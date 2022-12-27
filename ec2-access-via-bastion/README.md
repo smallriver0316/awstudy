@@ -1,6 +1,6 @@
 # EC2 access via bastion server
 
-This project is to demonstrate accesing EC2 via another EC2 as a bastion server.
+This project is to demonstrate accesing EC2 instance via another EC2 as a bastion server.
 
 ## Welcome to your CDK TypeScript project
 
@@ -92,6 +92,7 @@ aws secretsmanager get-secret-value \
 --query SecretString \
 --output text > private-key.pem
 
+# add permission
 chmod 400 private-key.pem
 
 # ssh -i private-key.pem -o ProxyCommand='ssh -i bastion-key.pem ec2-user@<Public IPv4 DNS of bastion server> -W %h:%p' ec2-user@<Private IPv4 DNS of private server>
