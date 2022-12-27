@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import * as ec2 from "aws-cdk-lib/aws-ec2";
-// import { KeyPair } from "cdk-ec2-key-pair";
+import { KeyPair } from "cdk-ec2-key-pair";
 import { Construct } from "constructs";
 
 export class Ec2AccessViaBastionStack extends cdk.Stack {
@@ -31,27 +31,69 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
       ],
     });
 
-    // key pair
-    // const key = new KeyPair(this, "sshkey", {
-    //   name: "ssh-key",
-    //   description: "ssh key to access from bastion to target machine",
-    //   storePublicKey: true,
-    // });
+    // Security Group
+    const bastionSg = new ec2.SecurityGroup(this, "BastionSg", {
+      vpc,
+      description: "Allow ssh access to bastion instance",
+      allowAllOutbound: true,
+    });
 
-    // security group
-    // const bastionSg = new ec2.SecurityGroup(this, "SecurityGroup", {
-    //   vpc,
-    //   description: "Allow SSH (TCP port 22) and HTTP (TCP port 80) in",
-    //   allowAllOutbound: true,
-    // });
+    bastionSg.addIngressRule(
+      ec2.Peer.ipv4("XXX.XXX.XXX.XX/32"),
+      ec2.Port.tcp(22),
+      "allow ssh access only from me"
+    );
+
+    const privateSg = new ec2.SecurityGroup(this, "PrivateSg", {
+      vpc,
+      description: "Allow ssh access from bastion instance",
+      allowAllOutbound: true,
+    });
+
+    privateSg.addIngressRule(
+      ec2.Peer.securityGroupId(bastionSg.securityGroupId),
+      ec2.Port.tcp(22),
+      "allow ssh access only from bastion instance"
+    );
+
+    // key pair
+    const bastionKey = new KeyPair(this, "BationKey", {
+      name: "bastion-keypair",
+      description: "ssh key pair for bastion host",
+      storePublicKey: true,
+    });
+
+    bastionKey.grantReadOnPublicKey;
+
+    const privateKey = new KeyPair(this, "PrivateKey", {
+      name: "private-keypair",
+      description: "ssh key pair for private host",
+      storePublicKey: true,
+    });
+
+    privateKey.grantReadOnPublicKey;
 
     // EC2
+
     // default instance type is t3.nano.
     // default machine image is Amazon Linux.
-    // SSM is active.
-    new ec2.BastionHostLinux(this, "bastionHost", {
+    // About BastionHost, SSM is active.
+    // const bastion = new ec2.BastionHostLinux(this, "BastionHost", {
+    //   vpc,
+    //   subnetSelection: { subnetType: ec2.SubnetType.PUBLIC },
+    //   instanceType: ec2.InstanceType.of(
+    //     ec2.InstanceClass.T2,
+    //     ec2.InstanceSize.MICRO
+    //   ),
+    //   machineImage: new ec2.AmazonLinuxImage({
+    //     generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+    //   }),
+    //   securityGroup: bastionSg,
+    // });
+
+    new ec2.Instance(this, "BastionHost", {
       vpc,
-      subnetSelection: { subnetType: ec2.SubnetType.PUBLIC },
+      vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
       instanceType: ec2.InstanceType.of(
         ec2.InstanceClass.T2,
         ec2.InstanceSize.MICRO
@@ -59,6 +101,22 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
       machineImage: new ec2.AmazonLinuxImage({
         generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
       }),
+      securityGroup: bastionSg,
+      keyName: bastionKey.keyPairName,
+    });
+
+    new ec2.Instance(this, "PrivateHost", {
+      vpc,
+      vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T2,
+        ec2.InstanceSize.MICRO
+      ),
+      machineImage: new ec2.AmazonLinuxImage({
+        generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
+      }),
+      securityGroup: privateSg,
+      keyName: privateKey.keyPairName,
     });
   }
 }
