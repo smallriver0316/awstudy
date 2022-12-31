@@ -7,14 +7,16 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    // const systemName = this.node.tryGetContext("systemName");
-    // const envType = this.node.tryGetContext("envType");
+    const stage = this.node.tryGetContext("stage")
+      ? this.node.tryGetContext("stage")
+      : "dev";
+    const myIp = this.node.tryGetContext("myIp");
 
     // VPC
     // Internet Gateway will be automatically created.
     // Route Table will be automatically created at each subnet.
     // Availability Zone will be ap-northeast-1a.
-    const vpc = new ec2.Vpc(this, "Vpc", {
+    const vpc = new ec2.Vpc(this, `Vpc-${stage}`, {
       ipAddresses: ec2.IpAddresses.cidr("10.0.0.0/16"),
       maxAzs: 1,
       subnetConfiguration: [
@@ -32,24 +34,28 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
     });
 
     // Security Group
-    const bastionSg = new ec2.SecurityGroup(this, "BastionSg", {
+    const bastionSg = new ec2.SecurityGroup(this, `BastionSg-${stage}`, {
       vpc,
       description: "Allow ssh access to bastion instance",
       allowAllOutbound: true,
     });
 
+    const ipv4Peer =
+      myIp === undefined ? ec2.Peer.anyIpv4() : ec2.Peer.ipv4(myIp);
+
     bastionSg.addIngressRule(
-      ec2.Peer.ipv4("XXX.XXX.XXX.XX/32"),
+      ipv4Peer,
       ec2.Port.tcp(22),
       "allow ssh access only from me"
     );
 
-    const privateSg = new ec2.SecurityGroup(this, "PrivateSg", {
+    const privateSg = new ec2.SecurityGroup(this, `PrivateSg-${stage}`, {
       vpc,
       description: "Allow ssh access from bastion instance",
       allowAllOutbound: true,
     });
 
+    // set ID of bastion security group as IPeer for access from bastion
     privateSg.addIngressRule(
       ec2.Peer.securityGroupId(bastionSg.securityGroupId),
       ec2.Port.tcp(22),
@@ -58,7 +64,7 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
 
     // key pair
     const bastionKey = new KeyPair(this, "BationKey", {
-      name: "bastion-keypair",
+      name: `bastion-keypair-${stage}`,
       description: "ssh key pair for bastion host",
       storePublicKey: true,
     });
@@ -66,7 +72,7 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
     bastionKey.grantReadOnPublicKey;
 
     const privateKey = new KeyPair(this, "PrivateKey", {
-      name: "private-keypair",
+      name: `private-keypair-${stage}`,
       description: "ssh key pair for private host",
       storePublicKey: true,
     });
@@ -91,7 +97,7 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
     //   securityGroup: bastionSg,
     // });
 
-    new ec2.Instance(this, "BastionHost", {
+    new ec2.Instance(this, `BastionHost-${stage}`, {
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },
       instanceType: ec2.InstanceType.of(
@@ -105,7 +111,7 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
       keyName: bastionKey.keyPairName,
     });
 
-    new ec2.Instance(this, "PrivateHost", {
+    new ec2.Instance(this, `PrivateHost-${stage}`, {
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PRIVATE_ISOLATED },
       instanceType: ec2.InstanceType.of(

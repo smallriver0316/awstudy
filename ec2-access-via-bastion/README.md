@@ -43,12 +43,23 @@ cdk bootstrap
 
 # deploy stack
 cdk deploy
+# deploy with stage name(default is dev)
+cdk deploy -c stage=<stage name>
+# deploy with restriction of access origin
+cdk deploy -c myIp=<Your IP address>
+# deploy with both parameters
+cdk deploy -c stage=<stage name> -c myIp=<Your IP address>
 ```
 
 ## How to delete
 
 ```bash
 cdk destroy
+
+Are you sure you want to delete: Ec2AccessViaBastionStack-dev (y/n)? y
+Ec2AccessViaBastionStack-dev: destroying... [1/1]
+
+ ✅  Ec2AccessViaBastionStack-dev: destroyed
 ```
 
 ## How to access
@@ -69,6 +80,7 @@ chmod 400 bastion-key.pem
 
 # ssh to basion server
 # ssh -i private-key-file ec2-user@<Public IPv4 DNS>
+# example in the case that Publick IPv4 DNS of bastion host is ec2-13-231-62-245.ap-northeast-1.compute.amazonaws.com
 ssh -i bastion-key.pem ec2-user@ec2-13-231-62-245.ap-northeast-1.compute.amazonaws.com
 
 The authenticity of host 'ec2-13-231-62-245.ap-northeast-1.compute.amazonaws.com (13.231.62.245)' can't be established.

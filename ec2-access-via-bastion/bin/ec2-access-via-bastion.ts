@@ -4,7 +4,11 @@ import * as cdk from "aws-cdk-lib";
 import { Ec2AccessViaBastionStack } from "../lib/ec2-access-via-bastion-stack";
 
 const app = new cdk.App();
-new Ec2AccessViaBastionStack(app, "Ec2AccessViaBastionStack", {
+const stage = app.node.tryGetContext("stage")
+  ? app.node.tryGetContext("stage")
+  : "dev";
+
+new Ec2AccessViaBastionStack(app, `Ec2AccessViaBastionStack-${stage}`, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
