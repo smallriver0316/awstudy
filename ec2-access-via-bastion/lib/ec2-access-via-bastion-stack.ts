@@ -80,23 +80,9 @@ export class Ec2AccessViaBastionStack extends cdk.Stack {
     privateKey.grantReadOnPublicKey;
 
     // EC2
-
     // default instance type is t3.nano.
     // default machine image is Amazon Linux.
     // About BastionHost, SSM is active.
-    // const bastion = new ec2.BastionHostLinux(this, "BastionHost", {
-    //   vpc,
-    //   subnetSelection: { subnetType: ec2.SubnetType.PUBLIC },
-    //   instanceType: ec2.InstanceType.of(
-    //     ec2.InstanceClass.T2,
-    //     ec2.InstanceSize.MICRO
-    //   ),
-    //   machineImage: new ec2.AmazonLinuxImage({
-    //     generation: ec2.AmazonLinuxGeneration.AMAZON_LINUX_2,
-    //   }),
-    //   securityGroup: bastionSg,
-    // });
-
     new ec2.Instance(this, `BastionHost-${stage}`, {
       vpc,
       vpcSubnets: { subnetType: ec2.SubnetType.PUBLIC },

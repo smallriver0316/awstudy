@@ -27,7 +27,7 @@ cd ec2-access-via-bastion/
 cdk init --language typescript
 ```
 
-After that, implement lib/ec2-access-via-bastion-stack.ts and bin/ec2-access-via-bastion.ts
+After that, implement lib/ec2-access-via-bastion-stack.ts and bin/ec2-access-via-bastion.ts.
 
 ## How to deploy
 
