@@ -13,4 +13,7 @@ aws-cli/2.9.4 Python/3.9.11 Linux/5.10.102.1-microsoft-standard-WSL2 exe/x86_64.
 
 $ cdk --version
 2.55.1 (build 30f1ae4)
+
+$ amplify --version
+10.5.2
 ```
