@@ -49,6 +49,8 @@ cdk deploy -c stage=<stage name>
 
 ## How to delete
 
+Don't forget to delete DB snapshot after the destroy command.
+
 ```bash
 cdk destroy
 ```
@@ -123,21 +125,11 @@ Query OK, 0 rows affected (0.01 sec)
 MySQL [(none)]> GRANT ALL ON testapp.* TO testuser@'%' WITH GRANT OPTION;
 Query OK, 0 rows affected (0.00 sec)
 
-MySQL [(none)]> CREATE USER migrate@'%' IDENTIFIED BY 'testMigrate';
-Query OK, 0 rows affected (0.03 sec)
-
-MySQL [(none)]> GRANT ALL ON testapp.* TO migrate@'%' WITH GRANT OPTION;
-Query OK, 0 rows affected (0.02 sec)
-
-MySQL [(none)]> GRANT ALL ON `prisma_migrate_shadow_db%`.* TO migrate@'%' WITH GRANT OPTION;
-Query OK, 0 rows affected (0.00 sec)
-
 MySQL [(none)]> SELECT Host, User FROM mysql.user;
 +-----------+-----------+
 | Host      | User      |
 +-----------+-----------+
 | %         | admin     |
-| %         | migrate   |
 | %         | testuser  |
 | localhost | mysql.sys |
 | localhost | rdsadmin  |
@@ -151,13 +143,51 @@ Bye
 Create DB table.
 
 ```bash
-$ mysql -h <writer endpoint of cluster> -u testuser -p
-Enter password: testEncP
-Welcome to the MariaDB monitor.  Commands end with ; or \g.
-Your MySQL connection id is 21
-Server version: 5.7.12 MySQL Community Server (GPL)
+MySQL [(none)]> CREATE DATABASE movies;
+Query OK, 1 row affected (0.01 sec)
 
-Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+MySQL [(none)]> SHOW DATABASES;
++--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| movies             |
+| mysql              |
+| performance_schema |
+| sys                |
++--------------------+
+5 rows in set (0.00 sec)
 
-Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+MySQL [(none)]> USE movies;
+Database changed
+
+MySQL [movies]> CREATE TABLE movies(
+    -> title VARCHAR(50) NOT NULL,
+    -> genre VARCHAR(30) NOT NULL,
+    -> director VARCHAR(60) NOT NULL,
+    -> release_year INT NOT NULL,
+    -> PRIMARY KEY(title));
+Query OK, 0 rows affected (0.12 sec)
+
+MySQL [movies]> DESCRIBE movies;
++--------------+-------------+------+-----+---------+-------+
+| Field        | Type        | Null | Key | Default | Extra |
++--------------+-------------+------+-----+---------+-------+
+| title        | varchar(50) | NO   | PRI | NULL    |       |
+| genre        | varchar(30) | NO   |     | NULL    |       |
+| director     | varchar(60) | NO   |     | NULL    |       |
+| release_year | int(11)     | NO   |     | NULL    |       |
++--------------+-------------+------+-----+---------+-------+
+4 rows in set (0.00 sec)
+
+MySQL [movies]> INSERT INTO movies VALUE ("Joker", "psychological thriller", "Todd Phillips", 2019);
+Query OK, 1 row affected (0.01 sec)
+
+MySQL [movies]> SELECT * FROM movies;
++-------+------------------------+---------------+--------------+
+| title | genre                  | director      | release_year |
++-------+------------------------+---------------+--------------+
+| Joker | psychological thriller | Todd Phillips |         2019 |
++-------+------------------------+---------------+--------------+
+1 row in set (0.00 sec)
 ```
