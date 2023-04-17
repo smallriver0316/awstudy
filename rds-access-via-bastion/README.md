@@ -17,9 +17,9 @@ The `cdk.json` file tells the CDK Toolkit how to execute your app.
 - `cdk diff` compare deployed stack with current state
 - `cdk synth` emits the synthesized CloudFormation template
 
-## How to build
+## How to launch
 
-This project is build by CDK.
+This project was build by CDK.
 
 ```bash
 mkdir rds-access-via-bastion
