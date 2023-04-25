@@ -52,3 +52,59 @@ cdk deploy -c stage=<stage name> -c myIp=<Your IP address>
 ```bash
 cdk destroy
 ```
+
+## How to setup EC2 instance
+
+Access via Session Manager.
+
+```bash
+sudo su - ec2-user
+```
+
+Install git.
+
+```bash
+$ sudo yum update
+$ sudo yum install git
+$ git --version
+
+git version 2.39.2
+```
+
+Install Python3.
+
+```bash
+# example of installing Python3.9 which requires compiling
+sudo yum install gcc openssl-devel bzip2-devel libffi-devel
+cd /opt
+sudo wget https://www.python.org/ftp/python/3.9.13/Python-3.9.16.tgz
+sudo tar xzf Python-3.9.16.tgz
+cd Python-3.9.16
+sudo ./configure --enable-optimizations
+sudo make altinstall
+cd ~/
+sudo rm -f /opt/Python-3.9.16.tgz
+python3.9 -V
+# => Python 3.9.16
+
+echo 'alias python=python3.9' >> ~/.bashrc
+source ~/.bashrc
+python -V
+# =>Python 3.9.16
+```
+
+Install cmake.
+
+```bash
+sudo yum install cmake3
+cmake3 --version
+# => cmake3 version 3.13.1
+```
+
+Install node.
+
+```bash
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+. ~/.nvm/nvm.sh
+nvm install 16
+```
